@@ -1,0 +1,209 @@
+<h2>Mis películas favoritas</h2>
+
+<ul class='movies-list'>
+  {{#each movies}}
+  <a>
+{{!-- <div class="movie-img">
+ {{#if this.img_id}}
+    <img src="{{this.img_id}}" alt="{{this.titulo}}">
+  {{else}}
+        <div class="placeholder-img">Sin imagen</div>
+  {{/if}}
+</div> --}}
+    <!-- Botón Favorito -->
+    <button class="favorite-btn" data-id="{{this.id_pelicula}}">
+      <svg class="heart-icon" height="20px" width="20px" viewBox="0 0 512.002 512.002">
+        <path fill="{{#if this.favorita}}#000000{{else}}#ff69b4{{/if}}"
+          d="M255.998,474.506l201.958-201.958c26.556-26.556,41.182-61.909,41.182-99.558
+          s-14.626-73.003-41.182-99.558c-26.59-26.598-61.943-41.242-99.558-41.242
+          c-33.493,0-66.21,12.442-92.433,35.337l-9.967,9.327l-10.291-9.617
+          C219.808,44.63,187.1,32.189,153.598,32.189c-37.615,0-72.969,14.643-99.558,41.242
+          c-26.556,26.556-41.182,61.909-41.182,99.558S27.484,246,54.039,272.547L255.998,474.506z" />
+      </svg>
+    </button>
+
+   <button class="edit-btn" data-id="{{this.id_pelicula}}">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+    <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z" stroke="#333" stroke-width="2"/>
+    <path d="M14.06 4.94l3.75 3.75 1.44-1.44a2 2 0 0 0 0-2.83l-0.92-.92a2 2 0 0 0-2.83 0l-1.44 1.44z" stroke="#333" stroke-width="2"/>
+  </svg>
+</button>
+
+
+
+    <h3>{{this.titulo}}</h3>
+    <p><strong>Director:</strong> {{this.director}}</p>
+    <p><strong>Descripción:</strong> {{this.descripcion}}</p>
+
+    <div class="view-section" id="view-{{this.id_pelicula}}">
+      <p><strong>Reseña:</strong> 
+        {{#if this.resena}}
+          {{this.resena}}
+        {{else}}
+          <em>Sin reseña</em>
+        {{/if}}
+      </p>
+
+      <p><strong>Puntuación:</strong> 
+        {{#if this.puntuacion}}
+          ⭐ {{this.puntuacion}} / 5
+        {{else}}
+          <em>Sin puntuación</em>
+        {{/if}}
+      </p>
+    </div>
+
+    <!-- edicion-->
+    <div class="edit-section" id="edit-{{this.id_pelicula}}" style="display:none;">
+
+      <textarea 
+        class="edit-review"
+        data-id="{{this.id_pelicula}}"
+        placeholder="Escribí tu reseña..."
+      >{{this.resena}}</textarea>
+
+      <div class="star-rating" data-id="{{this.id_pelicula}}" data-current="{{this.puntuacion}}">
+        <span data-value="1">★</span>
+        <span data-value="2">★</span>
+        <span data-value="3">★</span>
+        <span data-value="4">★</span>
+        <span data-value="5">★</span>
+      </div>
+
+      <button class="save-review-btn" data-id="{{this.id_pelicula}}">
+        Guardar cambios
+      </button>
+
+    </div>
+
+  </a>
+  {{/each}}
+</ul>
+
+
+{{#unless movies.length}}
+<p class='no-movies'>No tenés peliculas favoritas todavía. <a href='/movies'>Agregar</a>
+</p>
+{{/unless}}
+
+<script>
+  document.querySelectorAll('.favorite-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const movieId = btn.dataset.id;
+
+      try {
+        const response = await fetch('/movies/toggle', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id_pelicula: movieId })
+        });
+
+        // Si no está logueado
+        if (response.status === 401) {
+          return window.location.href = '/admin/login';
+        }
+
+        const data = await response.json();
+
+
+        const svg = btn.querySelector('.heart-icon');
+        if (svg) {
+          svg.setAttribute('fill', data.favorita ? '#ff69b4' : '#000000');
+        }
+
+        // Recargar la página 
+        setTimeout(() => {
+          window.location.reload();
+        }, 150);
+
+      } catch (error) {
+        console.error('Error al actualizar favorito:', error);
+        alert('Ocurrió un error al actualizar el favorito.');
+      }
+    });
+  });
+</script>
+<script>
+document.querySelectorAll('.save-review-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+
+    const movieId = btn.dataset.id;
+
+    const review = document.querySelector(`.edit-review[data-id="${movieId}"]`).value;
+    const rating = document.querySelector(`.star-rating[data-id="${movieId}"]`).dataset.current || 0;
+
+    try {
+      const res = await fetch('myProfile/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id_pelicula: movieId,
+          resena: review,
+          puntuacion: rating
+        })
+      });
+
+      if (!res.ok) return alert("Error al guardar.");
+
+      location.reload();
+
+    } catch (err) {
+      console.error(err);
+      alert("Error de conexión");
+    }
+  });
+});
+</script>
+
+<script>
+document.querySelectorAll('.star-rating').forEach(box => {
+  let current = parseInt(box.dataset.current) || 0;
+  const stars = box.querySelectorAll('span');
+
+  
+  stars.forEach(star => {
+    if (parseInt(star.dataset.value) <= current) {
+      star.classList.add('active');
+    }
+  });
+
+  stars.forEach(star => {
+    star.addEventListener('click', () => {
+      const value = parseInt(star.dataset.value);
+
+      stars.forEach(s => {
+        s.classList.toggle('active', parseInt(s.dataset.value) <= value);
+      });
+
+      box.dataset.current = value;
+    });
+  });
+});
+</script>
+
+
+<script>
+document.querySelectorAll('.edit-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const id = btn.dataset.id;
+
+    const view = document.querySelector(`#view-${id}`);
+    const edit = document.querySelector(`#edit-${id}`);
+
+    const isEditing = edit.style.display === "block";
+
+    // Toggle
+    edit.style.display = isEditing ? "none" : "block";
+    view.style.display = isEditing ? "block" : "none";
+
+    // Cambiar ícono
+    btn.innerHTML = isEditing
+      ? `<svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+           <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z" stroke="#333" stroke-width="2"/>
+           <path d="M14.06 4.94l3.75 3.75 1.44-1.44a2 2 0 0 0 0-2.83l-0.92-.92a2 2 0 0 0-2.83 0l-1.44 1.44z" stroke="#333" stroke-width="2"/>
+         </svg>`
+      : "✔";
+  });
+});
+</script>
+

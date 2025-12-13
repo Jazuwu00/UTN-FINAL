@@ -1,0 +1,22 @@
+<header class='main-header'>
+  <div class='container'>
+    <h1 class='logo'>Love Movies</h1>
+    <nav class='nav'>
+      <a href='/' class='nav-link'>Inicio</a>
+      <a href='/movies' class='nav-link'>Peliculas</a>
+      {{#if (eq rol 'admin')}}
+        <a href='/movies/add' class='nav-link'>Agregar Película</a>
+      {{/if}}
+
+      {{#if nombre}}
+        {{#unless (eq rol 'admin')}}
+          <a href='/admin/myProfile' class='nav-link'>Mi perfil</a>
+        {{/unless}}
+        <a href='/admin/login/logout' class='nav-link logout'>Cerrar sesión</a>
+      {{else}}
+        <a href='/admin/login' class='nav-link'>Iniciar sesión</a>
+      {{/if}}
+    </nav>
+
+  </div>
+</header>

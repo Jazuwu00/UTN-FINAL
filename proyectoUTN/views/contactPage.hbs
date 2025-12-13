@@ -1,0 +1,28 @@
+<div class="contact-container">
+  <h1>Contacto</h1>
+
+  {{#if msg}}
+    <p class="{{#if error}}error-msg{{else if success}}success-msg{{/if}}">{{msg}}</p>
+  {{/if}}
+
+  <form action="/contact" method="POST" class="contact-form">
+    <div class="form-group">
+      <label>Nombre *</label>
+      <input type="text" name="nombre" value="{{formData.nombre}}" required />
+    </div>
+
+    <div class="form-group">
+      <label>Email *</label>
+      <input type="email" name="email" value="{{formData.email}}" required />
+    </div>
+
+   
+
+    <div class="form-group">
+      <label>Mensaje *</label>
+      <textarea name="mensaje" required>{{formData.mensaje}}</textarea>
+    </div>
+
+    <button type="submit">Enviar</button>
+  </form>
+</div>

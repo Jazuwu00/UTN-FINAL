@@ -1,0 +1,54 @@
+<div class='add-movie-container'>
+  <div class='add-movie-card'>
+
+<h1>{{#if movie}}Editar{{else}}Agregar{{/if}} película</h1>
+
+    <form action="{{#if movie}}/movies/edit{{else}}/movies/add{{/if}}" method='POST' class='movie-form' enctype="multipart/form-data">
+        {{#if movie}}
+        <input type="hidden" name="id_pelicula" value="{{movie.id_pelicula}}" />
+        {{/if}}
+      <div class='form-group'>
+            <label>Imagen de portada</label>
+            <input type='file' name='imagen' class="imagen_portada" id="imagen"  />
+      </div>
+      <div class='form-group'>
+        <label>Título</label>
+        <input type='text' name='titulo' required   value="{{movie.titulo}}"/>
+      </div>
+
+      <div class='form-group'>
+        <label>Director</label>
+        <input type='text' name='director' required value="{{movie.director}}" />
+      </div>
+
+      <div class='form-group'>
+        <label>Actor Principal</label>
+        <input type='text' name='actor_principal' required value="{{movie.actor_principal}}" />
+      </div>
+
+      <div class='form-group'>
+        <label>Descripción</label>
+        <textarea name='descripcion' required>{{movie.descripcion}}</textarea>
+      </div>
+      <div class='form-group'>
+        <label>Género</label>
+        <input type='text' name='genero' value="{{movie.genero}}" />
+      </div>
+
+      <div class='form-group'>
+        <label>Año de Estreno</label>
+        <input type='number' name='anio_estreno' value="{{movie.anio_estreno}}" />
+      </div>
+
+      <button type='submit' class='btn-add-movie'>{{#if movie}}Guardar cambios{{else}}Agregar{{/if}}</button>
+
+      {{#if error}}
+        <p class='error-msg'>Ocurrió un error al guardar la película</p>
+      {{/if}}
+
+    </form>
+
+    <a href='/movies' class='back-link'>← Volver al listado</a>
+
+  </div>
+</div>

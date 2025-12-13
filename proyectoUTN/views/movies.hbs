@@ -1,0 +1,113 @@
+<h1>Todas las películas</h1>
+
+<ul class='movies-list'>
+  {{#each movies}}
+  <a href="http://localhost:3001/movies/{{this.id_pelicula}}">
+      <div class="movie-img">
+      {{#if this.imagen}}
+        <img src="{{this.imagen}}" alt="{{this.titulo}}" />
+      {{else}}
+        <div class="placeholder-img">Sin imagen</div>
+      {{/if}}
+    </div>
+
+    {{#if (eq ../rol 'admin')}}
+
+      <button class="edit-btn" onclick="window.location.href='/movies/edit/{{this.id_pelicula}}'">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+    <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z" stroke="#333" stroke-width="2"/>
+    <path d="M14.06 4.94l3.75 3.75 1.44-1.44a2 2 0 0 0 0-2.83l-0.92-.92a2 2 0 0 0-2.83 0l-1.44 1.44z" stroke="#333" stroke-width="2"/>
+  </svg>
+      </button>
+
+      <button class="delete-btn" data-id="{{this.id_pelicula}}">
+        <svg width="20" height="20" viewBox="0 0 24 24">
+          <path fill="#333" d="M9 3V4H4V6H5V19C5 20.1 5.9 21 7 21H17C18.1 21 19 20.1 19 19V6H20V4H15V3H9M7 6H17V19H7V6Z" />
+        </svg>
+      </button>
+
+    {{else}}
+      <button class="favorite-btn" data-id="{{this.id_pelicula}}">
+        <svg height="20px" width="20px" viewBox="0 0 512.002 512.002" class="heart-icon">
+          <path fill="{{#if this.favorita}}#ff69b4{{else}}#000000{{/if}}"
+            d="M255.998,474.506l201.958-201.958c26.556-26.556,41.182-61.909,41.182-99.558
+            s-14.626-73.003-41.182-99.558c-26.59-26.598-61.943-41.242-99.558-41.242c-33.493,0-66.21,12.442-92.433,35.337l-9.967,9.327
+            l-10.291-9.617C219.808,44.63,187.1,32.189,153.598,32.189c-37.615,0-72.969,14.643-99.558,41.242
+            c-26.556,26.556-41.182,61.909-41.182,99.558S27.484,246,54.039,272.547L255.998,474.506z"/>
+        </svg>
+      </button>
+    {{/if}}
+    <h3>{{this.titulo}}</h3>
+    <p><strong>Director:</strong> {{this.director}}</p>
+    <p><strong>Actor Principal:</strong> {{this.actor_principal}}</p>
+    <p><strong>Descripción:</strong> {{this.descripcion}}</p>
+     <p><strong>Genero:</strong> {{this.genero}}</p>
+    <p><strong>Año de estreno:</strong> {{this.anio_estreno}}</p>
+
+  </a>
+  {{/each}}
+</ul>
+
+{{#unless movies.length}}
+<p class='no-movies'>No hay películas disponibles.</p>
+{{/unless}}
+<script>
+  document.querySelectorAll('.favorite-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const movieId = btn.dataset.id;
+
+      try {
+        const response = await fetch('/movies/toggle', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id_pelicula: movieId })
+        });
+
+        // Si no está logueado
+        if (response.status === 401) {
+          return window.location.href = '/admin/login';
+        }
+
+        const data = await response.json();
+
+        // Cambiar color inmediato
+        const svg = btn.querySelector('.heart-icon');
+        if (svg) {
+          svg.setAttribute('fill', data.favorita ? '#ff69b4' : '#000000');
+        }
+
+        // Recargar la página 
+        setTimeout(() => {
+          window.location.reload();
+        }, 150);
+
+      } catch (error) {
+        console.error('Error al actualizar favorito:', error);
+        alert('Ocurrió un error al actualizar el favorito.');
+      }
+    });
+  });
+</script>
+<script>
+  // DELETE (solo admin)
+  document.querySelectorAll('.delete-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.id;
+      if (!confirm("¿Seguro que deseas eliminar esta película?")) return;
+
+      const response = await fetch('/movies/delete', {
+        method: 'POST',
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id_pelicula: id })
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        alert("Película eliminada");
+        location.reload();
+      } else {
+        alert("Error al eliminar la película");
+      }
+    });
+  });
+</script>
